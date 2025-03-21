@@ -1,0 +1,77 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Secure Chat</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/7.0.5/signalr.min.js"></script>
+</head>
+<body>
+<h1>Welcome to Secure Chat</h1>
+
+<!-- If the user isn't logged in, show this form -->
+<div id="loginSection">
+    <input id="user" type="text" placeholder="Enter your name" required />
+    <button onclick="enterChat()">Enter Chat</button>
+</div>
+
+<!-- Chat interface (initially hidden) -->
+<div id="chatSection" style="display: none;">
+    <input id="message" type="text" placeholder="Type a message" />
+    <button onclick="sendMessage()">Send</button>
+    <ul id="messagesList"></ul>
+</div>
+
+<script>
+    // Check if JWT token exists in localStorage
+    const token = localStorage.getItem("jwtToken");
+
+    // If the token doesn't exist, show the login section
+    if (!token) {
+        document.getElementById("loginSection").style.display = "block";
+        document.getElementById("chatSection").style.display = "none";
+    } else {
+        // Otherwise, attempt to start the SignalR connection
+        initializeChat(token);
+    }
+
+    function enterChat() {
+        // Simulate a login action here, for example, set a dummy token.
+        // In real app, you would need to handle login via an API, store the JWT, and proceed.
+
+        document.getElementById("loginSection").style.display = "none";
+        document.getElementById("chatSection").style.display = "block";
+
+        // Initialize the chat after login
+        initializeChat(localStorage.getItem("jwtToken"));
+    }
+
+    // Function to initialize the SignalR connection
+    function initializeChat(token) {
+        const connection = new signalR.HubConnectionBuilder()
+            .withUrl("/chatHub", {
+                accessTokenFactory: () => token
+            })
+            .withAutomaticReconnect()
+            .build();
+
+        connection.start().catch(err => console.error(err));
+
+        // Receive messages from the server and display them
+        connection.on("ReceiveMessage", (user, message) => {
+            const li = document.createElement("li");
+            li.textContent = `${user}: ${message}`;
+            document.getElementById("messagesList").appendChild(li);
+        });
+    }
+
+    // Send the message to the SignalR Hub
+    function sendMessage() {
+        const user = document.getElementById("user").value; // Get user name
+        const message = document.getElementById("message").value;
+        connection.invoke("SendMessage", user, message).catch(err => console.error(err));
+        document.getElementById("message").value = ""; // Clear the message input after sending
+    }
+</script>
+</body>
+</html>

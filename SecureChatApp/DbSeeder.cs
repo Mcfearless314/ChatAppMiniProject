@@ -20,17 +20,17 @@ public class DbSeeder
         await _ctx.Database.EnsureDeletedAsync();
         await _ctx.Database.EnsureCreatedAsync();
 
-        await CreateUser("User1", "S3cret1!");
-        await CreateUser("User2", "S3cret2!");
+        await CreateUser("Bob","Bob@bob.com", "S3cret1!");
+        await CreateUser("Alice","Alice@alice.com", "S3cret2!");
         await _ctx.SaveChangesAsync();
     }
 
-    private async Task CreateUser(string username, string password)
+    private async Task CreateUser(string username, string email,  string password)
     {
         var user = new IdentityUser
         {
             UserName = username,
-            Email = username,
+            Email = email,
             EmailConfirmed = true
         };
         var result = await _userManager.CreateAsync(user, password);
