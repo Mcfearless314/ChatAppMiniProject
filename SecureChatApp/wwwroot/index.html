@@ -1,0 +1,44 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Secure Chat</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/7.0.5/signalr.min.js"></script>
+</head>
+<body>
+<input id="user" type="text" placeholder="Enter your name" />
+<input id="message" type="text" placeholder="Type a message" />
+<button onclick="sendMessage()">Send</button>
+
+<ul id="messagesList"></ul>
+
+<script>
+    const connection = new signalR.HubConnectionBuilder()
+        .withUrl("/chatHub")
+        .build();
+
+    connection.on("ReceiveMessage", (user, message) => {
+        const li = document.createElement("li");
+        li.textContent = `${user}: ${message}`;
+        document.getElementById("messagesList").appendChild(li);
+    });
+
+    async function start() {
+        try {
+            await connection.start();
+            console.log("Connected.");
+        } catch (err) {
+            console.error(err);
+            setTimeout(start, 5000);
+        }
+    }
+    start();
+
+    function sendMessage() {
+        const user = document.getElementById("user").value;
+        const message = document.getElementById("message").value;
+        connection.invoke("SendMessage", user, message).catch(err => console.error(err));
+    }
+</script>
+</body>
+</html>
