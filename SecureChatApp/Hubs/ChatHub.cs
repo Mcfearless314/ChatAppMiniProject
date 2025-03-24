@@ -8,4 +8,14 @@ public class ChatHub : Hub
     {
         await Clients.All.SendAsync("ReceiveMessage", user, message);
     }
+    
+    public async Task SendPublicKey(string key)
+    {
+        await Clients.All.SendAsync("ReceivePublicKey", key);
+    }
+    
+    public async Task RequestPublicKey()
+    {
+        await Clients.All.SendAsync("RequestKey");
+    }
 }

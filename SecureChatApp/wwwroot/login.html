@@ -19,8 +19,9 @@
 
 <p id="errorMsg" style="color: red; display: none;">Invalid email or password.</p>
 
-<script>
-    document.getElementById("loginForm").addEventListener("submit", async function(event) {
+<script type="module">
+    
+    document.getElementById("loginForm").addEventListener("submit", async function (event) {
         event.preventDefault();
 
         const email = document.getElementById("email").value;
@@ -28,17 +29,18 @@
 
         const response = await fetch("/api/login/login", {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ email, password })
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify({email, password})
         });
 
         if (response.ok) {
             const token = await response.text(); // If the response returns only a token
             localStorage.setItem("jwtToken", token);
-            window.location.href = "chat.html"; // Redirect to chat page
+            window.location.href = "chat.html";
         } else {
             document.getElementById("errorMsg").style.display = "block";
         }
+
     });
 </script>
 </body>

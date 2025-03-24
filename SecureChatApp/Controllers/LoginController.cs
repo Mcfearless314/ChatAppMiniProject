@@ -9,17 +9,16 @@ namespace SecureChatApp.Controllers;
 [ApiController]
 public class LoginController : ControllerBase
 {
-    
     private readonly UserManager<IdentityUser> _userManager;
     private readonly SignInManager<IdentityUser> _signInManager;
     private readonly JwtTokenService _tokenService;
-    
-    public LoginController(UserManager<IdentityUser> userManager, SignInManager<IdentityUser> signInManager, JwtTokenService tokenService)
+
+    public LoginController(UserManager<IdentityUser> userManager, SignInManager<IdentityUser> signInManager,
+        JwtTokenService tokenService)
     {
         _userManager = userManager;
         _signInManager = signInManager;
         _tokenService = tokenService;
-
     }
 
     [HttpPost("login")]
@@ -33,9 +32,9 @@ public class LoginController : ControllerBase
         var result = await _signInManager.PasswordSignInAsync(user, loginRequest.Password, false, false);
         if (!result.Succeeded) return Unauthorized("Invalid email or password");
 
-         // Generate token
-         var sessionData = new SessionData(user.UserName, user.Email, user.Id);
-         var token = _tokenService.GenerateJwtToken(sessionData);
+        // Generate token
+        var sessionData = new SessionData(user.UserName, user.Email, user.Id);
+        var token = _tokenService.GenerateJwtToken(sessionData);
 
         return Ok(token);
     }
@@ -45,4 +44,4 @@ public class LoginController : ControllerBase
         public string Email { get; set; }
         public string Password { get; set; }
     }
-} 
+}
