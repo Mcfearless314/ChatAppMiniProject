@@ -34,7 +34,7 @@ public class LoginController : ControllerBase
         if (!result.Succeeded) return Unauthorized("Invalid email or password");
 
          // Generate token
-         var sessionData = new SessionData(user.Email, user.Id);
+         var sessionData = new SessionData(user.UserName, user.Email, user.Id);
          var token = _tokenService.GenerateJwtToken(sessionData);
 
         return Ok(token);

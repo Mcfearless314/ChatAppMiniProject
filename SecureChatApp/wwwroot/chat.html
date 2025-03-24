@@ -9,13 +9,6 @@
 <body>
 <h1>Welcome to Secure Chat</h1>
 
-<!-- If the user isn't logged in, show this form -->
-<div id="loginSection">
-    <input id="user" type="text" placeholder="Enter your name" required />
-    <button onclick="enterChat()">Enter Chat</button>
-</div>
-
-<!-- Chat interface (initially hidden) -->
 <div id="chatSection" style="display: none;">
     <input id="message" type="text" placeholder="Type a message" />
     <button onclick="sendMessage()">Send</button>
@@ -23,32 +16,30 @@
 </div>
 
 <script>
-    // Check if JWT token exists in localStorage
+    let connection = null;
+    let user = null;
+
+    // Retrieve JWT token
     const token = localStorage.getItem("jwtToken");
 
-    // If the token doesn't exist, show the login section
     if (!token) {
-        document.getElementById("loginSection").style.display = "block";
-        document.getElementById("chatSection").style.display = "none";
+        // Redirect to login if token is missing
+        window.location.href = "login.html";
     } else {
-        // Otherwise, attempt to start the SignalR connection
-        initializeChat(token);
+        // Extract username from the token
+        user = getUserNameFromToken(token);
+        if (!user) {
+            localStorage.removeItem("jwtToken"); // Invalid token, clear it
+            window.location.href = "login.html";
+        } else {
+            document.getElementById("chatSection").style.display = "block";
+            initializeChat(token);
+        }
     }
 
-    function enterChat() {
-        // Simulate a login action here, for example, set a dummy token.
-        // In real app, you would need to handle login via an API, store the JWT, and proceed.
-
-        document.getElementById("loginSection").style.display = "none";
-        document.getElementById("chatSection").style.display = "block";
-
-        // Initialize the chat after login
-        initializeChat(localStorage.getItem("jwtToken"));
-    }
-
-    // Function to initialize the SignalR connection
+    // Function to initialize the chat
     function initializeChat(token) {
-        const connection = new signalR.HubConnectionBuilder()
+        connection = new signalR.HubConnectionBuilder()
             .withUrl("/chatHub", {
                 accessTokenFactory: () => token
             })
@@ -64,13 +55,47 @@
             document.getElementById("messagesList").appendChild(li);
         });
     }
-
-    // Send the message to the SignalR Hub
+    
+    // Send the message
     function sendMessage() {
-        const user = document.getElementById("user").value; // Get user name
         const message = document.getElementById("message").value;
-        connection.invoke("SendMessage", user, message).catch(err => console.error(err));
-        document.getElementById("message").value = ""; // Clear the message input after sending
+
+        if (!connection) {
+            console.error("Connection not established.");
+            return;
+        }
+
+        console.log("Sending message:", message);
+        console.log("User:", user);
+        try{
+            connection.invoke("SendMessage", user, message)
+        } catch (error) {
+            console.error("Error sending message:", error);
+        }
+        document.getElementById("message").value = ""; // Clear the input field 
+    }
+
+    // Function to extract username from JWT
+    function getUserNameFromToken(token) {
+        try {
+            const payload = parseJwt(token) // Decode JWT payload
+            console.log("name:", payload.name);
+            return payload.name;
+        ; // Adjust based on your JWT claims
+        } catch (error) {
+            console.error("Invalid token", error);
+            return null;
+        }
+    }
+
+    function parseJwt (token) {
+        var base64Url = token.split('.')[1];
+        var base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+        var jsonPayload = decodeURIComponent(window.atob(base64).split('').map(function(c) {
+            return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+        }).join(''));
+
+        return JSON.parse(jsonPayload);
     }
 </script>
 </body>
