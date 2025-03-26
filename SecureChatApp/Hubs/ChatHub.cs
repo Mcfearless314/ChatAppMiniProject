@@ -9,9 +9,10 @@ public class ChatHub : Hub
         await Clients.All.SendAsync("ReceiveMessage", user, message);
     }
     
-    public async Task SendPublicKey(string key)
+    public async Task SendPublicKey(string ownPublicKey)
     {
-        await Clients.All.SendAsync("ReceivePublicKey", key);
+        var publicKey = ownPublicKey;
+        await Clients.AllExcept(Context.ConnectionId).SendAsync("ReceivePublicKey", publicKey);
     }
     
     public async Task RequestPublicKey()

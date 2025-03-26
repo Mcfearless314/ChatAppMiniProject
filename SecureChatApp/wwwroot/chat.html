@@ -16,10 +16,11 @@
 </div>
 
 <script type="module">
-    import { keyService } from './keyService.js';
+    import {keyService} from './keyService.js';
 
     let connection = null;
     let user = null;
+    let ownPublicKey = null;
 
     // Retrieve JWT token
     const token = localStorage.getItem("jwtToken");
@@ -41,8 +42,9 @@
 
     // Function to initialize the chat
     async function initializeChat(token) {
-        keyService.generateKeyPair();
-        connection = new signalR.HubConnectionBuilder()
+        await keyService.generateKeyPair();
+        ownPublicKey = await keyService.getPublicKeyBase64();
+        connection = await new signalR.HubConnectionBuilder()
             .withUrl("/chatHub", {
                 accessTokenFactory: () => token
             })
@@ -50,26 +52,11 @@
             .build();
 
         await connection.start().catch(err => console.error(err));
+        await connection.invoke("SendPublicKey", ownPublicKey);
+        await connection.invoke("RequestPublicKey");
 
-        if (!connection) {
-            console.error("Connection not established.");
-            return;
-        }
-        try {
-            await connection.invoke("RequestPublicKey");
-            await connection.invoke("SendPublicKey", await keyService.getPublicKeyBase64());
-        } catch (error) {
-            console.error("Error sending message:", error);
-        }
-
-        connection.on("RequestPublicKey", async () => {
-            await connection.invoke("SendPublicKey", await keyService.getPublicKeyBase64());
-            console.log(await keyService.getPublicKeyBase64());
-        });
-
-        connection.on("ReceivePublicKey", async (publicKey) => {
-            await keyService.deriveSharedKey(publicKey);
-            console.log(keyService.sharedKey);
+        connection.on("RequestKey", async () => {
+            await connection.invoke("SendPublicKey", ownPublicKey);
         });
 
         // Receive messages from the server and display them
@@ -79,11 +66,16 @@
             document.getElementById("messagesList").appendChild(li);
         });
 
+        connection.on("ReceivePublicKey", async (publicKey) => {
+            let otherPublicKey = await keyService.importPublicKeyFromBase64(publicKey);
+            await keyService.deriveSharedKey(otherPublicKey);
+            console.log("Sharedkey: " + keyService.sharedKey);
+        });
 
     }
 
     // Send the message
-    function sendMessage() {
+    window.sendMessage = function () {
         const message = document.getElementById("message").value;
 
         if (!connection) {
@@ -103,7 +95,6 @@
         try {
             const payload = parseJwt(token) // Decode JWT payload
             return payload.name;
-            ; // Adjust based on your JWT claims
         } catch (error) {
             console.error("Invalid token", error);
             return null;

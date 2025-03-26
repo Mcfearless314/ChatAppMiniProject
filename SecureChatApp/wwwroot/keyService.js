@@ -33,6 +33,7 @@ class KeyService {
 
     // Derive the shared key from the client's private key and the other party's public key
     async deriveSharedKey(otherPublicKey) {
+        console.log("otherpublickey", otherPublicKey);
         const sharedKey = await window.crypto.subtle.deriveKey(
             {
                 name: "ECDH",
@@ -51,9 +52,33 @@ class KeyService {
         this.sharedKey = sharedKey;
     }
 
+    async importPublicKeyFromBase64(base64Key) {
+        try {
+            // Convert the Base64 string back to ArrayBuffer
+            const keyBuffer = Uint8Array.from(atob(base64Key), c => c.charCodeAt(0));
+
+            // Import the ArrayBuffer back to a CryptoKey
+            const importedKey = await window.crypto.subtle.importKey(
+                "spki", // Format (SPKI for public key)
+                keyBuffer.buffer, // The ArrayBuffer representing the key
+                {
+                    name: "ECDH", // The algorithm
+                    namedCurve: "P-256" // The curve used for ECDH (ensure this matches the key's curve)
+                },
+                false, // The key is not extractable
+                ["deriveKey"] // Usages of the key
+            );
+
+            console.log("Imported public key:", importedKey);
+            return importedKey;
+        } catch (error) {
+            console.error("Error importing public key:", error);
+            throw error;
+        }
+    }
+
     // Example method to get the public key in a usable format (e.g., Base64)
     async getPublicKeyBase64() {
-        console.log("Am i doing this?");
         try {
             // Ensure the publicKey is of type CryptoKey
             if (!(this.publicKey instanceof CryptoKey)) {
