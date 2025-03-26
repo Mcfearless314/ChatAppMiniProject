@@ -66,7 +66,7 @@ class KeyService {
                     namedCurve: "P-256" // The curve used for ECDH (ensure this matches the key's curve)
                 },
                 false, // The key is not extractable
-                ["deriveKey"] // Usages of the key
+                [] // Usages of the key
             );
 
             console.log("Imported public key:", importedKey);
@@ -101,6 +101,7 @@ class KeyService {
 
     // Encrypt a message using the derived shared key
     async encryptMessage(message) {
+        console.log("sharedKey", this.sharedKey);
         const encoder = new TextEncoder();
         const data = encoder.encode(message);
 
@@ -132,7 +133,6 @@ class KeyService {
         const decoder = new TextDecoder();
         return decoder.decode(decrypted);
     }
-    
 }
 
 // Instantiate the service to manage keys

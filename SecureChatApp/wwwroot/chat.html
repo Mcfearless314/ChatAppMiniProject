@@ -67,10 +67,22 @@
         });
 
         connection.on("ReceivePublicKey", async (publicKey) => {
+            console.log("Received public key: " + publicKey);
+
+            // Import the other user's public key
             let otherPublicKey = await keyService.importPublicKeyFromBase64(publicKey);
+            console.log("Other public key: ", publicKey);
+
+            // Log own public key
+            console.log("Own public key: ", ownPublicKey);
+
+            // Derive shared key using the other user's public key
             await keyService.deriveSharedKey(otherPublicKey);
-            console.log("Sharedkey: " + keyService.sharedKey);
+
+            // Log the derived shared key
+            console.log("Derived shared key (after ECDH):", keyService.sharedKey);
         });
+
 
     }
 
