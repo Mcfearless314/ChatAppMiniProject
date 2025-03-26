@@ -4,9 +4,11 @@ using Microsoft.AspNetCore.Authorization;
 
 public class ChatHub : Hub
 {
-    public async Task SendMessage(string user, string message)
+    public async Task SendMessage(string user, string ciphertextBase64, string ivBase64)
     {
-        await Clients.All.SendAsync("ReceiveMessage", user, message);
+        var ciphertext = ciphertextBase64;
+        var iv = ivBase64;
+        await Clients.All.SendAsync("ReceiveMessage", user, ciphertext, iv);
     }
     
     public async Task SendPublicKey(string ownPublicKey)

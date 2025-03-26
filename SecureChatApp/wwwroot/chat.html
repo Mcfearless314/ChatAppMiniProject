@@ -60,42 +60,36 @@
         });
 
         // Receive messages from the server and display them
-        connection.on("ReceiveMessage", (user, message) => {
-            const li = document.createElement("li");
-            li.textContent = `${user}: ${message}`;
-            document.getElementById("messagesList").appendChild(li);
+        connection.on("ReceiveMessage", async (user, ciphertext, iv) => {
+            try {
+                let message = await keyService.decryptMessage(ciphertext, iv);
+                const li = document.createElement("li");
+                li.textContent = `${user}: ${message}`;
+                document.getElementById("messagesList").appendChild(li);
+            } catch (error) {
+                console.error("Failed to decrypt message:", error);
+            }
         });
 
         connection.on("ReceivePublicKey", async (publicKey) => {
-            console.log("Received public key: " + publicKey);
-
-            // Import the other user's public key
             let otherPublicKey = await keyService.importPublicKeyFromBase64(publicKey);
-            console.log("Other public key: ", publicKey);
-
-            // Log own public key
-            console.log("Own public key: ", ownPublicKey);
-
-            // Derive shared key using the other user's public key
             await keyService.deriveSharedKey(otherPublicKey);
-
-            // Log the derived shared key
-            console.log("Derived shared key (after ECDH):", keyService.sharedKey);
         });
 
 
     }
 
     // Send the message
-    window.sendMessage = function () {
-        const message = document.getElementById("message").value;
+    window.sendMessage = async function () {
+        let message = document.getElementById("message").value;
 
         if (!connection) {
             console.error("Connection not established.");
             return;
         }
         try {
-            connection.invoke("SendMessage", user, message)
+            const {ciphertext, iv} = await keyService.encryptMessage(message);
+            await connection.invoke("SendMessage", user, ciphertext, iv);
         } catch (error) {
             console.error("Error sending message:", error);
         }
