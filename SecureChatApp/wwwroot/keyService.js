@@ -36,6 +36,7 @@ class KeyService {
         this.sharedKey = sharedKey;
     }
 
+    // Import public key from Base64 and convert it to a CryptoKey for use
     async importPublicKeyFromBase64(base64Key) {
         try {
             const keyBuffer = Uint8Array.from(atob(base64Key), c => c.charCodeAt(0));
@@ -49,7 +50,7 @@ class KeyService {
         }
     }
 
-    // Example method to get the public key in a usable format (e.g., Base64)
+    // Export public key as Base64 for transmission over WebSocket
     async getPublicKeyBase64() {
         try {
 
@@ -88,21 +89,33 @@ class KeyService {
         };
     }
 
+    // Convert a Base64 string to an ArrayBuffer
+    base64ToArrayBuffer(base64) {
+        const binaryString = atob(base64); 
+        const length = binaryString.length;
+        const arrayBuffer = new Uint8Array(length);
+
+        for (let i = 0; i < length; i++) {
+            arrayBuffer[i] = binaryString.charCodeAt(i);
+        }
+
+        return arrayBuffer;
+    }
+
+
     // Decrypt a message using the derived shared key
     async decryptMessage(ciphertext, iv) {
-        const encoder = new TextEncoder();
-        let cipherArrayBuffer = encoder.encode(ciphertext).buffer;
-        let ivArrayBuffer = encoder.encode(iv);
-        console.log(cipherArrayBuffer);
-        console.log(ivArrayBuffer);
+        const cipherArrayBuffer = this.base64ToArrayBuffer(ciphertext);
+        const ivArray = this.base64ToArrayBuffer(iv);
+
         const decrypted = await window.crypto.subtle.decrypt(
-            {name: "AES-GCM", iv: ivArrayBuffer},
+            { name: "AES-GCM", iv: ivArray },
             this.sharedKey,
             cipherArrayBuffer
         );
+
         return new TextDecoder().decode(decrypted);
     }
-
 }
 
 

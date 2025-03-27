@@ -20,8 +20,8 @@ public class DbSeeder
         await _ctx.Database.EnsureDeletedAsync();
         await _ctx.Database.EnsureCreatedAsync();
 
-        await CreateUser("Bob","B@bob.com", "S3cret1!");
-        await CreateUser("Alice","A@bob.com", "S3cret1!");
+        await CreateUser("Bob","Bob@bob.com", "S3cret1!");
+        await CreateUser("Alice","A@alice.com", "S3cret2!");
         await _ctx.SaveChangesAsync();
     }
 

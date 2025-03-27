@@ -1,17 +1,23 @@
 using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using SecureChatApp;
 using SecureChatApp.Controllers;
 using SecureChatApp.Entities;
+using SecureChatApp.Logging;
 
 var builder = WebApplication.CreateBuilder(args);
 
 
-builder.Services.AddSignalR();
+builder.Services.AddSignalR(options =>
+{
+    options.AddFilter<SignalRLoggingFilter>();  // Add filter here
+});
+builder.Services.AddSingleton<SignalRLoggingFilter>();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddScoped<DbSeeder>();
