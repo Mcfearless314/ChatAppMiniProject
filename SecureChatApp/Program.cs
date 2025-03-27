@@ -15,7 +15,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddSignalR(options =>
 {
-    options.AddFilter<SignalRLoggingFilter>();  // Add filter here
+    options.AddFilter<SignalRLoggingFilter>(); 
 });
 builder.Services.AddSingleton<SignalRLoggingFilter>();
 builder.Services.AddEndpointsApiExplorer();
@@ -64,6 +64,7 @@ var app = builder.Build();
 app.MapControllers();
 app.MapHub<ChatHub>("/chatHub");
 app.UseStaticFiles();
+
 // Seed
 using (var scope = app.Services.CreateScope())
 {
