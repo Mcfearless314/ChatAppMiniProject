@@ -22,3 +22,4 @@ Alice:
 
 Når begge brugere er logget ind, deriver de en shared key, og kan nu skrive beskeder til hinanden.
 Beskederne er end-to-end encrypted, og kan kun læses af Bob og Alice.
+Loggeren logger beskeder i deres crypterede form, i console så man kan verificere at serveren ikke modtager ucrpyteret data.
