@@ -75,11 +75,9 @@
             let otherPublicKey = await keyService.importPublicKeyFromBase64(publicKey);
             await keyService.deriveSharedKey(otherPublicKey);
         });
-
-
     }
 
-    // Send the message
+    // Function to send a message
     window.sendMessage = async function () {
         let message = document.getElementById("message").value;
 
